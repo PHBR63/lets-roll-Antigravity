@@ -10,6 +10,7 @@ import { AuthProvider } from './context/AuthContext';
 import { AuthPage } from './pages/AuthPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { CampaignWizard } from './components/CampaignWizard';
 
 function App() {
   return (
@@ -26,6 +27,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Criador de Campanha */}
+          <Route
+            path="/campaigns/new"
+            element={
+              <ProtectedRoute>
+                <CampaignWizard />
               </ProtectedRoute>
             }
           />
