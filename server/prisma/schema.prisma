@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/**
+ * Model: User
+ * Representa um usuário da plataforma
+ * 
+ * Um usuário pode criar/participar de múltiplas campanhas,
+ * ter múltiplos personagens e logar na plataforma.
+ */
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  username  String   @unique
+  password  String   // Hash bcrypt
+  avatar    String?  // URL ou path da imagem
+  bio       String?  // Biografia curta
+  timezone  String   @default("America/Sao_Paulo")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relações
+  campaigns       CampaignMember[] // Campanhas em que participa
+  characters      Character[]      // Personagens criados
+  ownedCampaigns  Campaign[]       // Campanhas que criou (é mestre)
+}
+
+/**
+ * Model: Campaign
+ * Representa uma campanha de RPG
+ * 
+ * Uma campanha é criada por um mestre e pode ter
+ * múltiplos participantes (jogadores/observadores).
+ */
+model Campaign {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  coverImage  String?  // URL ou path da imagem de capa
+  system      String   @default("generic") // Sistema de regras (D&D, OP, etc)
+  status      String   @default("active") // active, paused, ended
+  inviteToken String?  @unique // Token para convite via link
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relações
+  masterId   String
+  master     User             @relation(fields: [masterId], references: [id])
+  members    CampaignMember[]
+  characters Character[]
+}
+
+/**
+ * Model: CampaignMember
+ * Relação entre usuários e campanhas
+ * 
+ * Define o papel de cada usuário em uma campanha
+ * (mestre, jogador, observador).
+ */
+model CampaignMember {
+  id         String   @id @default(uuid())
+  role       String   @default("player") // master, player, observer
+  joinedAt   DateTime @default(now())
+
+  // Relações
+  userId     String
+  campaignId String
+  user       User     @relation(fields: [userId], references: [id])
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+
+  @@unique([userId, campaignId]) // Um usuário não pode estar duplicado na mesma campanha
+}
+
+/**
+ * Model: Character
+ * Representa um personagem de jogador
+ * 
+ * Cada personagem pertence a uma campanha e a um usuário.
+ * Os atributos são armazenados como JSON para flexibilidade
+ * entre diferentes sistemas de regras.
+ */
+model Character {
+  id          String   @id @default(uuid())
+  name        String
+  class       String?  // Classe do personagem (Guerreiro, Mago, etc)
+  level       Int      @default(1)
+  xp          Int      @default(0)
+  hp          Int      @default(10)
+  maxHp       Int      @default(10)
+  attributes  String   @default("{}") // JSON com atributos (Força, Destreza, etc)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relações
+  userId     String
+  campaignId String
+  user       User     @relation(fields: [userId], references: [id])
+  campaign   Campaign @relation(fields: [campaignId], references: [id])
+}
