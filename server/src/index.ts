@@ -3,22 +3,13 @@
  * 
  * Este arquivo inicializa o Express, configura middlewares,
  * define rotas e inicia o servidor HTTP.
- * 
- * Criado para servir como base da API RESTful que será
-/**
- * Entry point do servidor Let's Roll
- * 
- * Este arquivo inicializa o Express, configura middlewares,
- * define rotas e inicia o servidor HTTP.
- * 
- * Criado para servir como base da API RESTful que será
- * consumida pelo frontend React.
  */
 
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import authRoutes from './routes/authRoutes.js';
+import authRoutes from './routes/authRoutes';
+import campaignRoutes from './routes/campaignRoutes';
 
 // Carregar variáveis de ambiente
 dotenv.config();
@@ -27,24 +18,22 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 /**
- * Middlewares
- * - cors: Permite requisições do frontend
- * - express.json: Parse de JSON no body das requisições
+ * Middlewares globais
  */
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173'
+    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    credentials: true
 }));
 app.use(express.json());
 
 /**
- * Rotas de Autenticação
- * Todas as rotas de auth começam com /api/auth
+ * Rotas da API
  */
 app.use('/api/auth', authRoutes);
+app.use('/api/campaigns', campaignRoutes);
 
 /**
- * Rota de health check
- * Utilizada para verificar se o servidor está rodando
+ * Health check
  */
 app.get('/health', (req, res) => {
     res.json({
@@ -56,7 +45,6 @@ app.get('/health', (req, res) => {
 
 /**
  * Rota raiz
- * Retorna informações básicas da API
  */
 app.get('/', (req, res) => {
     res.json({
@@ -68,7 +56,6 @@ app.get('/', (req, res) => {
 
 /**
  * Inicialização do servidor
- * Inicia o servidor HTTP na porta especificada
  */
 app.listen(PORT, () => {
     console.log(`🎲 Let's Roll API rodando na porta ${PORT}`);

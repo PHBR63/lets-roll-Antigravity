@@ -15,94 +15,156 @@ datasource db {
  * Representa um usuário da plataforma
  * 
  * Um usuário pode criar/participar de múltiplas campanhas,
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/**
+ * Model: User
+ * Representa um usuário da plataforma
+ * 
+ * Um usuário pode criar/participar de múltiplas campanhas,
  * ter múltiplos personagens e logar na plataforma.
  */
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
   username  String   @unique
-  password  String   // Hash bcrypt
-  avatar    String?  // URL ou path da imagem
+  password  String
+  avatar    String?
   bio       String?  // Biografia curta
   timezone  String   @default("America/Sao_Paulo")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relações
-  campaigns       CampaignMember[] // Campanhas em que participa
-  characters      Character[]      // Personagens criados
-  ownedCampaigns  Campaign[]       // Campanhas que criou (é mestre)
+  // Relacionamentos
+  campaigns       CampaignMember[]
+  characters      Character[]
+  messages        Message[]
 }
 
-/**
- * Model: Campaign
- * Representa uma campanha de RPG
- * 
- * Uma campanha é criada por um mestre e pode ter
- * múltiplos participantes (jogadores/observadores).
- */
+// ===== CAMPANHAS =====
+
 model Campaign {
   id          String   @id @default(uuid())
   name        String
   description String?
-  coverImage  String?  // URL ou path da imagem de capa
-  system      String   @default("generic") // Sistema de regras (D&D, OP, etc)
-  status      String   @default("active") // active, paused, ended
-  inviteToken String?  @unique // Token para convite via link
+  coverImage  String?  // URL da imagem de capa
+  system      String   @default("Ordem Paranormal") // Sistema de RPG
+  status      String   @default("ACTIVE") // ACTIVE, PAUSED, ENDED
+  
+  // Configurações do criador (Steps 2-3)
+  items       Json?    // Adquiríveis: [{ title, properties: [{name, description}] }]
+  abilities   Json?    // Habilidades: [{ title, properties }]
+  npcs        Json?    // NPCs: [{ name, bars: [{title, type}], properties }]
+  creatures   Json?    // Criaturas: mesma estrutura de NPCs
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  // Relações
-  masterId   String
-  master     User             @relation(fields: [masterId], references: [id])
-  members    CampaignMember[]
-  characters Character[]
+  
+  // Relacionamentos
+  members     CampaignMember[]
+  characters  Character[]
+  invites     Invite[]
+  sessions    Session[]
 }
 
-/**
- * Model: CampaignMember
- * Relação entre usuários e campanhas
- * 
- * Define o papel de cada usuário em uma campanha
- * (mestre, jogador, observador).
- */
 model CampaignMember {
   id         String   @id @default(uuid())
-  role       String   @default("player") // master, player, observer
-  joinedAt   DateTime @default(now())
-
-  // Relações
-  userId     String
   campaignId String
-  user       User     @relation(fields: [userId], references: [id])
-  campaign   Campaign @relation(fields: [campaignId], references: [id])
-
-  @@unique([userId, campaignId]) // Um usuário não pode estar duplicado na mesma campanha
+  userId     String
+  role       String   // MASTER, PLAYER, OBSERVER
+  joinedAt   DateTime @default(now())
+  
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([campaignId, userId])
 }
 
-/**
- * Model: Character
- * Representa um personagem de jogador
- * 
- * Cada personagem pertence a uma campanha e a um usuário.
- * Os atributos são armazenados como JSON para flexibilidade
- * entre diferentes sistemas de regras.
- */
+model Invite {
+  id         String    @id @default(uuid())
+  campaignId String
+  token      String    @unique
+  expiresAt  DateTime?
+  usedBy     String[]  @default([]) // Array de userIds que usaram
+  createdAt  DateTime  @default(now())
+  
+  campaign   Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+}
+
+// ===== PERSONAGENS =====
+
 model Character {
   id          String   @id @default(uuid())
+  campaignId  String
+  userId      String
   name        String
-  class       String?  // Classe do personagem (Guerreiro, Mago, etc)
-  level       Int      @default(1)
-  xp          Int      @default(0)
-  hp          Int      @default(10)
-  maxHp       Int      @default(10)
-  attributes  String   @default("{}") // JSON com atributos (Força, Destreza, etc)
+  avatar      String?
+  class       String   // Combatente, Especialista, Ocultista
+  
+  // Atributos (Ordem Paranormal)
+  agilidade   Int      @default(0)
+  forca       Int      @default(0)
+  intelecto   Int      @default(0)
+  presenca    Int      @default(0)
+  vigor       Int      @default(0)
+  
+  // Recursos
+  pv          Int      @default(0)
+  pvMax       Int      @default(0)
+  san         Int      @default(0)
+  sanMax      Int      @default(0)
+  pe          Int      @default(0)
+  peMax       Int      @default(0)
+  nex         Int      @default(5)
+  
+  // Outros dados
+  defesa      Int      @default(10)
+  movimento   Int      @default(9)
+  pericias    Json?    // { "Atletismo": "Treinado", ... }
+  inventory   Json?
+  combat      Json?
+  rituais     Json?
+  afinidade   String?
+  condicoes   Json?
+  customData  Json?
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  
+  campaign    Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  // Relações
-  userId     String
+// ===== SESSÕES =====
+
+model Session {
+  id         String    @id @default(uuid())
   campaignId String
-  user       User     @relation(fields: [userId], references: [id])
-  campaign   Campaign @relation(fields: [campaignId], references: [id])
+  startedAt  DateTime  @default(now())
+  endedAt    DateTime?
+  
+  campaign   Campaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  messages   Message[]
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  sessionId String
+  userId    String
+  content   String
+  type      String   // TEXT, DICE_ROLL, NARRATION
+  createdAt DateTime @default(now())
+  
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
