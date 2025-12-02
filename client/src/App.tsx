@@ -16,18 +16,28 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* Rota raiz redireciona para dashboard */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-
-          {/* Rota de autenticação (login/cadastro) */}
+          {/* Rota pública */}
+          <Route path="/" element={<Navigate to="/auth" replace />} />
           <Route path="/auth" element={<AuthPage />} />
 
-          {/* Rotas protegidas (requerem autenticação) */}
+          {/* Rotas protegidas */}
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
                 <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Placeholder: Página da Campanha */}
+          <Route
+            path="/campaigns/:id"
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-navy-950 flex items-center justify-center">
+                  <p className="text-white text-xl">Página da Campanha (em desenvolvimento)</p>
+                </div>
               </ProtectedRoute>
             }
           />
