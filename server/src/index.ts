@@ -5,12 +5,20 @@
  * define rotas e inicia o servidor HTTP.
  * 
  * Criado para servir como base da API RESTful que será
+/**
+ * Entry point do servidor Let's Roll
+ * 
+ * Este arquivo inicializa o Express, configura middlewares,
+ * define rotas e inicia o servidor HTTP.
+ * 
+ * Criado para servir como base da API RESTful que será
  * consumida pelo frontend React.
  */
 
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import authRoutes from './routes/authRoutes.js';
 
 // Carregar variáveis de ambiente
 dotenv.config();
@@ -27,6 +35,12 @@ app.use(cors({
     origin: process.env.CORS_ORIGIN || 'http://localhost:5173'
 }));
 app.use(express.json());
+
+/**
+ * Rotas de Autenticação
+ * Todas as rotas de auth começam com /api/auth
+ */
+app.use('/api/auth', authRoutes);
 
 /**
  * Rota de health check
