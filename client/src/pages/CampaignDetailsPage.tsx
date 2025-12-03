@@ -90,7 +90,7 @@ export const CampaignDetailsPage: React.FC = () => {
                                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">{campaign.name}</h1>
                             </div>
                             <Button
-                                onClick={() => console.log('Entrar na sessão (em breve)')}
+                                onClick={() => navigate(`/campaigns/${id}/session`)}
                                 className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg shadow-lg shadow-green-900/20"
                             >
                                 ▶ Entrar na Sessão

@@ -45,6 +45,16 @@ app.use(express.json());
 io.on('connection', (socket) => {
     console.log(`🔌 Cliente conectado: ${socket.id}`);
 
+    socket.on('join_room', (campaignId) => {
+        socket.join(campaignId);
+        console.log(`👤 Cliente ${socket.id} entrou na sala: ${campaignId}`);
+    });
+
+    socket.on('send_message', (data) => {
+        // data: { campaignId, content, type, user: { username, avatar } }
+        io.to(data.campaignId).emit('receive_message', data);
+    });
+
     socket.on('disconnect', () => {
         console.log(`❌ Cliente desconectado: ${socket.id}`);
     });

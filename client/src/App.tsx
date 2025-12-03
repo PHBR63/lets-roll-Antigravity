@@ -1,16 +1,10 @@
-/**
- * App Component
- * 
- * Componente raiz da aplicação.
- * Configura o React Router e envolve a aplicação com o AuthProvider.
- */
-
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { SocketProvider } from './context/SocketContext';
 import { AuthPage } from './pages/AuthPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { CampaignDetailsPage } from './pages/CampaignDetailsPage';
+import { SessionPage } from './pages/SessionPage';
 import { CharacterCreationPage } from './pages/CharacterCreationPage';
 import { CharacterSheetPage } from './pages/CharacterSheetPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -52,6 +46,16 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CampaignDetailsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Sessão de Jogo (Lobby) */}
+            <Route
+              path="/campaigns/:id/session"
+              element={
+                <ProtectedRoute>
+                  <SessionPage />
                 </ProtectedRoute>
               }
             />
