@@ -10,11 +10,24 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/authRoutes';
 import campaignRoutes from './routes/campaignRoutes';
+import characterRoutes from './routes/characterRoutes';
 
 // Carregar variáveis de ambiente
 dotenv.config();
 
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+    cors: {
+        origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+        methods: ['GET', 'POST'],
+        credentials: true
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 
 /**
@@ -27,10 +40,22 @@ app.use(cors({
 app.use(express.json());
 
 /**
+ * Socket.io Events
+ */
+io.on('connection', (socket) => {
+    console.log(`🔌 Cliente conectado: ${socket.id}`);
+
+    socket.on('disconnect', () => {
+        console.log(`❌ Cliente desconectado: ${socket.id}`);
+    });
+});
+
+/**
  * Rotas da API
  */
 app.use('/api/auth', authRoutes);
 app.use('/api/campaigns', campaignRoutes);
+app.use('/api/characters', characterRoutes);
 
 /**
  * Health check
@@ -57,7 +82,7 @@ app.get('/', (req, res) => {
 /**
  * Inicialização do servidor
  */
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
     console.log(`🎲 Let's Roll API rodando na porta ${PORT}`);
     console.log(`🌍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🔗 Health check: http://localhost:${PORT}/health`);

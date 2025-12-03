@@ -6,8 +6,8 @@
  */
 
 import React from 'react';
-import { CampaignFormData } from '../CampaignWizard';
-import { Card } from '../../Card';
+import type { CampaignFormData } from '../CampaignWizard';
+import { Card } from '../Card';
 
 interface Step3PersonalitiesProps {
     formData: CampaignFormData;

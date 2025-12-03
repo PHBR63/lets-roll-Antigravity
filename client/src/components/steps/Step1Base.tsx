@@ -9,9 +9,9 @@
  */
 
 import React from 'react';
-import { CampaignFormData } from '../CampaignWizard';
-import { Card } from '../../Card';
-import { Input } from '../../Input';
+import type { CampaignFormData } from '../CampaignWizard';
+import { Card } from '../Card';
+import { Input } from '../Input';
 
 interface Step1BaseProps {
     formData: CampaignFormData;
@@ -109,8 +109,8 @@ export const Step1Base: React.FC<Step1BaseProps> = ({ formData, updateFormData }
                                 key={system.id}
                                 onClick={() => updateFormData({ system: system.name })}
                                 className={`p-4 rounded-lg border-2 transition-colors text-left ${formData.system === system.name
-                                        ? 'border-primary-500 bg-primary-500/10'
-                                        : 'border-gray-700 hover:border-gray-600'
+                                    ? 'border-primary-500 bg-primary-500/10'
+                                    : 'border-gray-700 hover:border-gray-600'
                                     }`}
                             >
                                 <div className="text-3xl mb-2">{system.icon}</div>
